@@ -6,19 +6,21 @@
     <script src="./index.js"></script>
   </head>
   <body>
-    <a-scene physics="debug: false; gravity: -9.8;" device-orientation-permission-ui="enabled: false">
+    <a-scene physics="debug: false; gravity: -1.8;" device-orientation-permission-ui="enabled: false">
       <a-assets>
         <a-item id="landscape" src="../assets/processed_files/scaled_up_backface_culling_noshadow.glb"></a-item>
+        <a-item id="nav_mesh" src="../assets/processed_files/nav_mesh.glb"></a-item>
       </a-assets>
 
-      <a-entity position="0 400 0" id='rig' player="" collider-check body="shape:box">
+      <a-entity id="avatar" position="0 400 0" id='rig' player="" collider-check >
         <a-entity id='camera' look-controls wasd-controls="" camera >
           <a-entity raycaster="showLine: true; far: 100; lineColor: red; lineOpacity: 0.5;objects: .collidable" ></a-entity>
         </a-entity>
       </a-entity>
-      <a-box position="-1 400 -5" rotation="0 45 0" color="#4CC3D9" shadow body="shape: box;"></a-box>
-      <!--<a-entity gltf-model="#landscape" body="type:static;mass:0;shape:box"></a-entity>-->
-      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#7BC8A4" shadow body="type: static; mass: 0; shape: box;"></a-plane>
+        <!--<a-box position="0 400 0" rotation="0 45 0" color="#4CC3D9" shadow body="shape: box;" class="collidable"></a-box>-->
+      <a-entity gltf-model="#landscape" ></a-entity>
+      <a-entity gltf-model="#nav_mesh" visible="false" nav-mesh></a-entity>
+      <!--<a-plane position="0 0 0" rotation="90 0 0" width="100" height="100" color="#7BC8A4" shadow body="type: static; mass: 0; shape: box;"></a-plane>-->
     </a-scene>
   </body>
 </html>

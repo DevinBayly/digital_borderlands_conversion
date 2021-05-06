@@ -64,3 +64,64 @@ AFRAME.registerComponent("crosses",{
   }
 })
 
+let pt = function(x,y,z) {
+  this.x = x
+  this.y = y
+  this.z = z
+}
+pt.prototype.distXZ = function (o) {
+  return Math.sqrt(Math.pow(o.x - this.x,2) + Math.pow(o.z - this.z,2))
+}
+
+AFRAME.registerComponent('nav-mesh',{
+  init() {
+    let navEl = this.el
+    let nav = this
+    this.el.addEventListener("model-loaded",function (e) {
+      console.log("loaded",e)
+      let mesh = e.detail.model.children[0].geometry
+      let positions = mesh.attributes.position.array
+      // go through and create points from everything
+      console.log(positions)
+      let points = []
+      for (let i = 0; i < positions.length; i+=3) {
+        let p = new pt(positions[i],positions[i+1],positions[i+2])
+
+        points.push(p)
+      }
+      console.log(points)
+      let pairedDown = points.reduce((acc,cur)=> {
+        if (acc.indexOf(JSON.stringify(cur)) == -1) {
+          acc.push(JSON.stringify(cur))
+        }
+        return acc
+      },[])
+      pairedDown = pairedDown.map(e=> {
+        let xyz = JSON.parse(e)
+        return new pt(xyz.x,xyz.y,xyz.z)
+      })
+      console.log(pairedDown)
+      nav.Points = pairedDown
+      // calculate position for starting point
+      // query the 
+      let updateHeight =() => {
+      let avatar = document.querySelector("#avatar").object3D
+      console.log(avatar)
+      let avatarPoint = new pt(avatar.position.x,0,avatar.position.z)
+      let min
+      for (let meshPoint of nav.Points) {
+        // calculate the minimum distance
+        let dst = meshPoint.distXZ(avatarPoint)
+        if (min == undefined || min.v > dst) {
+          min = {v:dst,y:meshPoint.y}
+        }
+      }
+      avatar.position.y = min.y
+      setTimeout(()=> {
+        updateHeight()
+      },5000)
+      }
+      updateHeight()
+    })
+  }
+})
