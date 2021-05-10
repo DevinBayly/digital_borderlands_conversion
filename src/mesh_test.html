@@ -1,29 +1,66 @@
+<!DOCTYPE html>
 <html>
   <head>
-
+    <meta charset="utf-8">
+    <title>A-Frame Cursor Teleport Component - Basic</title>
+    <meta name="description" content="Basic example for Cursor Teleport component."></meta>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="./aframe-physics-system/dist/aframe-physics-system.min.js"></script>
-    <script src="./mesh_test.js"></script>
+      <script src="https://unpkg.com/aframe-cursor-teleport-component@1.0.0/dist/aframe-cursor-teleport-component.min.js"></script>
+    <script src="https://rawgit.com/fernandojsg/aframe-teleport-controls/master/dist/aframe-teleport-controls.min.js"></script>
+    <script src="loader.js"></script>
   </head>
   <body>
-    <a-scene physics="debug: false; gravity: -1.8;" background="color:black" device-orientation-permission-ui="enabled: false">
+    <script>
+      AFRAME.registerComponent('color-change', {
+        init: function(){
+          this.el.addEventListener('click', function(){
+            //set material color to random hex value
+            var randomColor = '#'+Math.floor(Math.random()*16777215).toString(16);
+            this.setAttribute( 'material', {color: randomColor} );
+          })
+        }
+      });
+    </script>
+
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable" renderer="colorManagement: true;">
+
       <a-assets>
         <a-item id="landscape" src="../assets/processed_files/scaled_up_backface_culling_noshadow.glb"></a-item>
-        <a-item id="nav_mesh" src="../assets/processed_files/demo_mesh.glb"></a-item>
+        <a-item id="nav_mesh" src="../assets/processed_files/test_collision_box2.glb"></a-item>
       </a-assets>
-
-      <a-entity id="avatar" position="0 1 -1" id='rig' player="" collider-check >
-        <a-entity id='camera' look-controls wasd-controls="" camera >
-          <a-entity raycaster="showLine: true; far: 100; lineColor: red; lineOpacity: 0.5;objects: .collidable" ></a-entity>
-        </a-entity>
+      <!-- player -->
+      <a-entity id="cameraRig" position="0 5 0" cursor-teleport="cameraRig: #cameraRig; cameraHead: #head; collisionEntities: .collision; ignoreEntities: .clickable; landingMaxAngle:360">
+        <a-entity id="head" position="0 1.52 0" camera look-controls=""></a-entity>
+        <a-entity
+          laser-controls="hand: left"
+          raycaster="objects: .clickable; far: 100"
+          line="color: red; opacity: 0.75"
+          teleport-controls="
+            collisionEntities: .collision;
+            cameraRig: #cameraRig;
+            teleportOrigin: #head;
+            button: thumbstick;
+            curveShootingSpeed: 8"></a-entity>
+        <a-entity
+          laser-controls="hand: right"
+          raycaster="objects: .clickable"
+          line="color: red; opacity: 0.75"
+          teleport-controls="
+            collisionEntities: .collision;
+            cameraRig: #cameraRig;
+            teleportOrigin: #head;
+            button: thumbstick;
+            curveShootingSpeed: 8"></a-entity>
       </a-entity>
-        <!--<a-box position="0 400 0" rotation="0 45 0" color="#4CC3D9" shadow body="shape: box;" class="collidable"></a-box>-->
 
-      <a-box scale=".1 .1 .1" color="red" id="box1"></a-box>
-      <a-box scale=".1 .1 .1" color="green" id="box2"></a-box>
-      <a-box scale=".1 .1 .1" color="blue" id="box3"></a-box>
-      <a-entity gltf-model="#nav_mesh" visible="true" nav-mesh></a-entity>
-      <!--<a-plane position="0 0 0" rotation="90 0 0" width="100" height="100" color="#7BC8A4" shadow body="type: static; mass: 0; shape: box;"></a-plane>-->
+      <!-- scene geometry -->
+      <a-entity class="collision" loader="path:../assets/processed_files/test_collision_box2.glb" color="red" visible="false"></a-entity>
+      <a-entity gltf-model="#nav_mesh"></a-entity>
+
+      <!-- environment -->
+      <a-sky color="#e1f5fe"></a-sky>
+
     </a-scene>
+
   </body>
 </html>
