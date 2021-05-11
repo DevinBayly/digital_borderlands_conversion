@@ -4,61 +4,46 @@
     <meta charset="utf-8">
     <title>A-Frame Cursor Teleport Component - Basic</title>
     <meta name="description" content="Basic example for Cursor Teleport component."></meta>
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-      <script src="https://unpkg.com/aframe-cursor-teleport-component@1.0.0/dist/aframe-cursor-teleport-component.min.js"></script>
-    <script src="https://rawgit.com/fernandojsg/aframe-teleport-controls/master/dist/aframe-teleport-controls.min.js"></script>
+    <script src="https://aframe.io/releases/1.2.0/aframe.js"></script>
+    <script src="../node_modules/three/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="mesh_test.js"></script>
+    <script src="https://unpkg.com/aframe-cursor-teleport-component@1.0.0/dist/aframe-cursor-teleport-component.min.js"></script>
+    <script src="./aframe-teleport-controls.js"></script>
     <script src="loader.js"></script>
   </head>
   <body>
-    <script>
-      AFRAME.registerComponent('color-change', {
-        init: function(){
-          this.el.addEventListener('click', function(){
-            //set material color to random hex value
-            var randomColor = '#'+Math.floor(Math.random()*16777215).toString(16);
-            this.setAttribute( 'material', {color: randomColor} );
-          })
-        }
-      });
-    </script>
 
-    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable" renderer="colorManagement: true;">
-
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable" >
       <a-assets>
         <a-item id="landscape" src="../assets/processed_files/scaled_up_backface_culling_noshadow.glb"></a-item>
-        <a-item id="nav_mesh" src="../assets/processed_files/test_collision_box2.glb"></a-item>
+        <a-item id="test" src="../assets/processed_files/test_collision_box2.glb"></a-item>
       </a-assets>
-      <!-- player -->
-      <a-entity id="cameraRig" position="0 5 0" cursor-teleport="cameraRig: #cameraRig; cameraHead: #head; collisionEntities: .collision; ignoreEntities: .clickable; landingMaxAngle:360">
+        <a-entity id="cameraRig" position="0 200 0" cursor-teleport="cameraRig: #cameraRig; cameraHead: #head; collisionEntities: .collision; ignoreEntities: .clickable; landingMaxAngle:360">
         <a-entity id="head" position="0 1.52 0" camera look-controls=""></a-entity>
         <a-entity
-          laser-controls="hand: left"
-          raycaster="objects: .clickable; far: 100"
-          line="color: red; opacity: 0.75"
-          teleport-controls="
-            collisionEntities: .collision;
-            cameraRig: #cameraRig;
-            teleportOrigin: #head;
-            button: thumbstick;
-            curveShootingSpeed: 8"></a-entity>
+        laser-controls="hand: left"
+        raycaster="objects: .clickable; far: 100"
+        line="color: red; opacity: 0.75"
+        teleport-controls="
+        collisionEntities: .collision;
+        cameraRig: #cameraRig;
+        teleportOrigin: #head;
+        button: thumbstick;
+        curveShootingSpeed: 8"></a-entity>
         <a-entity
-          laser-controls="hand: right"
-          raycaster="objects: .clickable"
-          line="color: red; opacity: 0.75"
-          teleport-controls="
-            collisionEntities: .collision;
-            cameraRig: #cameraRig;
-            teleportOrigin: #head;
-            button: thumbstick;
-            curveShootingSpeed: 8"></a-entity>
-      </a-entity>
-
-      <!-- scene geometry -->
-      <a-entity class="collision" loader="path:../assets/processed_files/test_collision_box2.glb" color="red" visible="false"></a-entity>
-      <a-entity gltf-model="#nav_mesh"></a-entity>
-
+        laser-controls="hand: right"
+        raycaster="objects: .clickable"
+        line="color: red; opacity: 0.75"
+        teleport-controls="
+        collisionEntities: .collision;
+        cameraRig: #cameraRig;
+        teleportOrigin: #head;
+        button: thumbstick;
+        curveShootingSpeed: 8"></a-entity>
+        </a-entity>
+      <a-entity my-mesh></a-entity>
+      <a-entity class="collision" loader="path:../assets/processed_files/nav_mesh_test.glb"  visible="false"></a-entity>
       <!-- environment -->
-      <a-sky color="#e1f5fe"></a-sky>
 
     </a-scene>
 
