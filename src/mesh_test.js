@@ -39,10 +39,16 @@ AFRAME.registerComponent('collider-check', {
   dependencies: ['raycaster'],
 
   init: function () {
-    this.el.addEventListener('raycaster-intersection', function (e) {
-      //console.log('Player hit something!',e.detail.intersections[0]);
+    let avatar = document.querySelector("#avatar")
+    let cam = document.querySelector("#camera")
+    this.el.addEventListener('click', function (e) {
+      let point =  e.detail.intersection.point
+      console.log('Player hit something!',e.detail);
       // make a little box at location
-      makeBox(e.detail.intersections[0].point)
+      makeBox(point)
+      cam.object3D.position.x = point.x
+      avatar.object3D.position.y = point.y + 1.9
+      cam.object3D.position.z = point.z
       //
     });
   }
@@ -51,13 +57,8 @@ AFRAME.registerComponent('collider-check', {
 // Component to change to a sequential color on click.
 AFRAME.registerComponent('cursor-listener', {
   init: function () {
-    var lastIndex = -1;
-    var COLORS = ['red', 'green', 'blue'];
     this.el.addEventListener('click', function (evt) {
-      lastIndex = (lastIndex + 1) % COLORS.length;
-      this.setAttribute('material', 'color', COLORS[lastIndex]);
-      console.log('I was clicked at: ', evt.detail.intersection.point);
-      makeBox(evt.detail.intersection.point)
+      console.log('I was clicked at: ',point);
     });
   }
 });

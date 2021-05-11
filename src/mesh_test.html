@@ -15,15 +15,16 @@
         <a-item id="landscape" src="../assets/processed_files/test_collision_box4.glb"></a-item>
         <a-item id="nav-mesh" src="../assets/processed_files/nav_mesh.glb"></a-item>
       </a-assets>
-      <a-entity position="0 200 0" id="avatar">
+      <a-entity  id="avatar" position="0 200 0">
         <a-entity id="camera" camera look-controls wasd-controls >
         </a-entity>
       </a-entity>
-      <a-entity cursor="rayOrigin:mouse;"
+      <a-entity rayCaster="objects:.clickable;" cursor="rayOrigin:mouse;" collider-check>
       </a-entity>
       <!-- environment -->
 
-      <a-entity gltf-model="#nav-mesh" cursor-listener></a-entity>
+      <a-entity class="clickable" gltf-model="#landscape"></a-entity>
+      <!--<a-entity class="clickable" gltf-model="#nav-mesh" visible="false"></a-entity>-->
     </a-scene>
 
   </body>
