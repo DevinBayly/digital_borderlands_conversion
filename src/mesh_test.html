@@ -13,36 +13,17 @@
   </head>
   <body>
 
-    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable" >
+    <a-scene background="color:black">
       <a-assets>
         <a-item id="landscape" src="../assets/processed_files/scaled_up_backface_culling_noshadow.glb"></a-item>
         <a-item id="test" src="../assets/processed_files/test_collision_box2.glb"></a-item>
       </a-assets>
-        <a-entity id="cameraRig" position="0 200 0" cursor-teleport="cameraRig: #cameraRig; cameraHead: #head; collisionEntities: .collision; ignoreEntities: .clickable; landingMaxAngle:360">
-        <a-entity id="head" position="0 1.52 0" camera look-controls=""></a-entity>
-        <a-entity
-        laser-controls="hand: left"
-        raycaster="objects: .clickable; far: 100"
-        line="color: red; opacity: 0.75"
-        teleport-controls="
-        collisionEntities: .collision;
-        cameraRig: #cameraRig;
-        teleportOrigin: #head;
-        button: thumbstick;
-        curveShootingSpeed: 8"></a-entity>
-        <a-entity
-        laser-controls="hand: right"
-        raycaster="objects: .clickable"
-        line="color: red; opacity: 0.75"
-        teleport-controls="
-        collisionEntities: .collision;
-        cameraRig: #cameraRig;
-        teleportOrigin: #head;
-        button: thumbstick;
-        curveShootingSpeed: 8"></a-entity>
-        </a-entity>
       <a-entity my-mesh></a-entity>
-      <a-entity class="collision" loader="path:../assets/processed_files/nav_mesh_test.glb"  visible="false"></a-entity>
+      <a-entity id="avatar">
+      <a-entity id="camera" camera look-controls wasd-controls>
+
+      </a-entity>
+      </a-entity>
       <!-- environment -->
 
     </a-scene>

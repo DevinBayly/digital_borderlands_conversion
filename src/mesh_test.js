@@ -1,15 +1,35 @@
+function makeBox(p) {
+  let box = document.createElement("a-box")
+  box.setAttribute("color","red")
+  box.object3D.position.x = p.x
+  box.object3D.position.y = p.y
+  box.object3D.position.z = p.z
+  document.querySelector("a-scene").append( box )
+}
+
+
 AFRAME.registerComponent("my-mesh",{
   init() {
     console.log("self is ",self)
     let el = this.el
     let loader = new THREE.GLTFLoader()
-    // test if this setts the url?
-    loader.load("../assets/processed_files/test_collision_box4.glb",function(gltf) {
+    loader.load("../assets/processed_files/demo_mesh.glb",function(gltf) {
       console.log(gltf)
       el.setObject3D("landscape",gltf.scene)
-      //addSecondCamera()
-      //let second = document.querySelector("#head")
-      //second.setAttribute("camera","active",true)
+      let cam = document.querySelector("#camera")
+      let repeatPlace = ()=> {
+        // create raycaster from 
+        let start = new THREE.Vector3(cam.object3D.position.x,-10,cam.object3D.position.z)
+        let end = new THREE.Vector3(0,1,0)
+        let ray = new THREE.Raycaster(start,end)
+        // calculate intersections
+        // // set recursive children check
+        let intersects = ray.intersectObject(gltf.scene.children[0],true)
+        console.log(intersects)
+        makeBox(intersects[0].point)
+        setTimeout(repeatPlace,4000)
+      }
+      repeatPlace()
     })
   }
 })
