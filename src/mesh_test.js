@@ -1,6 +1,7 @@
 function makeBox(p) {
   let box = document.createElement("a-box")
   box.setAttribute("color","red")
+  box.setAttribute("scale",".1 .1 .1")
   box.object3D.position.x = p.x
   box.object3D.position.y = p.y
   box.object3D.position.z = p.z
@@ -33,3 +34,16 @@ AFRAME.registerComponent("my-mesh",{
     })
   }
 })
+
+AFRAME.registerComponent('collider-check', {
+  dependencies: ['raycaster'],
+
+  init: function () {
+    this.el.addEventListener('raycaster-intersection', function (e) {
+      //console.log('Player hit something!',e.detail.intersections[0]);
+      // make a little box at location
+      makeBox(e.detail.intersections[0].point)
+      //
+    });
+  }
+});
