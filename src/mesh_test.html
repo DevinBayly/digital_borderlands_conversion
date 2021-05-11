@@ -13,18 +13,17 @@
     <a-scene background="color:black">
       <a-assets>
         <a-item id="landscape" src="../assets/processed_files/test_collision_box4.glb"></a-item>
-        <a-item id="test" src="../assets/processed_files/test_collision_box2.glb"></a-item>
+        <a-item id="nav-mesh" src="../assets/processed_files/nav_mesh.glb"></a-item>
       </a-assets>
-      <a-entity id="avatar">
+      <a-entity position="0 200 0" id="avatar">
         <a-entity id="camera" camera look-controls wasd-controls >
-      <a-entity id="player" collider-check>
-        <a-entity raycaster="objects: .collidable;showLine:true"></a-entity>
-      </a-entity>
         </a-entity>
       </a-entity>
+      <a-entity cursor="rayOrigin:mouse;"
+      </a-entity>
       <!-- environment -->
-      <a-entity class="collidable" geometry="primitive: box" position="1 0 0"></a-entity>
 
+      <a-entity gltf-model="#nav-mesh" cursor-listener></a-entity>
     </a-scene>
 
   </body>

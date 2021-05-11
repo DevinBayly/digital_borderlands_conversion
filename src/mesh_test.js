@@ -1,7 +1,7 @@
 function makeBox(p) {
   let box = document.createElement("a-box")
   box.setAttribute("color","red")
-  box.setAttribute("scale",".1 .1 .1")
+  box.setAttribute("scale","10 10 10")
   box.object3D.position.x = p.x
   box.object3D.position.y = p.y
   box.object3D.position.z = p.z
@@ -44,6 +44,20 @@ AFRAME.registerComponent('collider-check', {
       // make a little box at location
       makeBox(e.detail.intersections[0].point)
       //
+    });
+  }
+});
+
+// Component to change to a sequential color on click.
+AFRAME.registerComponent('cursor-listener', {
+  init: function () {
+    var lastIndex = -1;
+    var COLORS = ['red', 'green', 'blue'];
+    this.el.addEventListener('click', function (evt) {
+      lastIndex = (lastIndex + 1) % COLORS.length;
+      this.setAttribute('material', 'color', COLORS[lastIndex]);
+      console.log('I was clicked at: ', evt.detail.intersection.point);
+      makeBox(evt.detail.intersection.point)
     });
   }
 });
