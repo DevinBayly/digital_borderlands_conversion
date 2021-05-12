@@ -49,6 +49,7 @@ function raycastOnLandscape(scene,point) {
 function addCrossToScene(point,data) {
   let scene = document.querySelector("a-scene")
   let cross = document.createElement("a-entity")
+
   cross.setAttribute("scale","10 10 10")
   cross.setAttribute("gltf-model","#cross")
   cross.setAttribute("class","clickable")
@@ -57,7 +58,7 @@ function addCrossToScene(point,data) {
     let text = document.createElement("a-entity")
     text.setAttribute("text","value",`${JSON.stringify(data)}`)
     // make text above the cross"
-    text.setAttribute("position","0 .5 0")
+    text.setAttribute("position","0 1 0")
     cross.append(text)
   })
   cross.object3D.position.x = point.x
@@ -150,12 +151,14 @@ AFRAME.registerComponent('collider-check', {
     let cam = document.querySelector("#camera")
     this.el.addEventListener('click', function (e) {
       let point =  e.detail.intersection.point
+      if (e.detail.intersectedEl.getAttribute("gltf-model").match(/cross/) == null) {
       console.log('Player hit something!',e.detail);
       // make a little box at location
       makeBox(point)
       cam.object3D.position.x = point.x
       avatar.object3D.position.y = point.y +.5
       cam.object3D.position.z = point.z
+      }
       //
     });
   }
