@@ -43,7 +43,7 @@ function raycastOnLandscape(object3Dchildren,point) {
   let start = point
   let dir = new THREE.Vector3(0,1,0)
   let ray = new THREE.Raycaster(start,dir)
-  let intersects = ray.intersectObjects(object3Dchildren,true)
+  let intersects = ray.intersectObject(object3Dchildren,true)
   return intersects[0]
 }
 
@@ -76,7 +76,7 @@ AFRAME.registerComponent('cross-loader', {
         // shoot which one is for x vs z? I think long is x
         //console.log(nlat,nlng,nlng*(bb.max.x - bb.min.x) +bb.min.x,nlat*(bb.max.z - bb.min.z) +bb.min.z)
         let singleConverted = {
-          position: new THREE.Vector3(nlng*(bb.max.x - bb.min.x) +bb.min.x, bb.min.z - 10,nlat*(bb.max.z - bb.min.z) +bb.min.z),
+          position: new THREE.Vector3(nlng*(bb.max.x - bb.min.x) +bb.min.x, bb.min.y - 10,nlat*(bb.max.z - bb.min.z) +bb.min.z),
           displayData:datum
         }
         crossesInMeshSpace.push(singleConverted)
@@ -86,10 +86,10 @@ AFRAME.registerComponent('cross-loader', {
         let dst = cam.object3D.position.distanceTo(cross.position) 
         if (dst < 8000) {
           // make the crosses in the desertt
-          let intersect = raycastOnLandscape(this.el.object3D.children,cross.position)
+          let intersect = raycastOnLandscape(this.el.object3D.children[0].children[0],cross.position)
           cross.position.y = intersect.point.y
           // place the cross
-          addCrossToScene(point)
+          addCrossToScene(cross.position)
         }
       }
     })
