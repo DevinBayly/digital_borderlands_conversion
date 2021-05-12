@@ -35,6 +35,67 @@ AFRAME.registerComponent("my-mesh",{
   }
 })
 
+// point will only include x,z
+// mesh will be the el.object3D, with a second argument True for recursion
+function raycastOnLandscape(object3Dchildren,point) {
+  // could use the min z for the bb on the landscape also
+  console.log("raycasting for cross",point)
+  let start = point
+  let dir = new THREE.Vector3(0,1,0)
+  let ray = new THREE.Raycaster(start,dir)
+  let intersects = ray.intersectObjects(object3Dchildren,true)
+  return intersects[0]
+}
+
+function addCrossToScene(point) {
+  console.log("adding cross at point",point)
+  let scene = document.querySelector("a-scene")
+  let cross = document.createElement("a-entity")
+  cross.setAttribute("gltf-model","#cross")
+  cross.object3D.position.x = point.x
+  cross.object3D.position.y = point.y
+  cross.object3D.position.z = point.z
+  scene.append(cross)
+}
+
+
+AFRAME.registerComponent('cross-loader', {
+  async init() {
+    this.el.addEventListener("model-loaded",async ()=> {
+      console.log("cross landscape access", this.el.object3D)
+      // use the bb on the landscape to correctly scale the 0-1 values from the death data json 
+      let scene = this.el.object3D.children[0]
+      let geometry = this.el.object3D.children[0].children[0].geometry
+      let data = await fetch("../assets/processed_files/death_points_n33_w113.json").then(res=> res.json())
+      let bb = geometry.boundingBox
+      console.log(bb)
+      let crossesInMeshSpace =[]
+      for (let datum of data) {
+        let nlat = datum['norm_lat']
+        let nlng = datum['norm_lng']
+        // shoot which one is for x vs z? I think long is x
+        //console.log(nlat,nlng,nlng*(bb.max.x - bb.min.x) +bb.min.x,nlat*(bb.max.z - bb.min.z) +bb.min.z)
+        let singleConverted = {
+          position: new THREE.Vector3(nlng*(bb.max.x - bb.min.x) +bb.min.x, bb.min.z - 10,nlat*(bb.max.z - bb.min.z) +bb.min.z),
+          displayData:datum
+        }
+        crossesInMeshSpace.push(singleConverted)
+      }
+      let cam = document.querySelector("#camera")
+      for (let cross of crossesInMeshSpace) {
+        let dst = cam.object3D.position.distanceTo(cross.position) 
+        if (dst < 8000) {
+          // make the crosses in the desertt
+          let intersect = raycastOnLandscape(this.el.object3D.children,cross.position)
+          cross.position.y = intersect.point.y
+          // place the cross
+          addCrossToScene(point)
+        }
+      }
+    })
+  }
+})
+
 AFRAME.registerComponent('collider-check', {
   dependencies: ['raycaster'],
 
