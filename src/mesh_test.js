@@ -1,7 +1,7 @@
 function makeBox(p) {
   let box = document.createElement("a-box")
   box.setAttribute("color","red")
-  box.setAttribute("scale","10 10 10")
+  box.setAttribute("scale","1 1 1")
   box.object3D.position.x = p.x
   box.object3D.position.y = p.y
   box.object3D.position.z = p.z
@@ -14,13 +14,13 @@ AFRAME.registerComponent("my-mesh",{
     console.log("self is ",self)
     let el = this.el
     let loader = new THREE.GLTFLoader()
-    loader.load("../assets/processed_files/demo_mesh.glb",function(gltf) {
+    loader.load("../assets/processed_files/test_collision_box6.glb",function(gltf) {
       console.log(gltf)
       el.setObject3D("landscape",gltf.scene)
       let cam = document.querySelector("#camera")
       let repeatPlace = ()=> {
         // create raycaster from 
-        let start = new THREE.Vector3(cam.object3D.position.x,-10,cam.object3D.position.z)
+        let start = new THREE.Vector3(cam.object3D.position.x,-100,cam.object3D.position.z)
         let end = new THREE.Vector3(0,1,0)
         let ray = new THREE.Raycaster(start,end)
         // calculate intersections
@@ -37,18 +37,16 @@ AFRAME.registerComponent("my-mesh",{
 
 // point will only include x,z
 // mesh will be the el.object3D, with a second argument True for recursion
-function raycastOnLandscape(object3Dchildren,point) {
+function raycastOnLandscape(scene,point) {
   // could use the min z for the bb on the landscape also
-  console.log("raycasting for cross",point)
   let start = point
   let dir = new THREE.Vector3(0,1,0)
   let ray = new THREE.Raycaster(start,dir)
-  let intersects = ray.intersectObject(object3Dchildren,true)
+  let intersects = ray.intersectObject(scene.children[0],true)
   return intersects[0]
 }
 
 function addCrossToScene(point) {
-  console.log("adding cross at point",point)
   let scene = document.querySelector("a-scene")
   let cross = document.createElement("a-entity")
   cross.setAttribute("gltf-model","#cross")
@@ -57,15 +55,32 @@ function addCrossToScene(point) {
   cross.object3D.position.z = point.z
   scene.append(cross)
 }
+/*
+let mouse = new THREE.Vector2()
 
+document.body.addEventListener("mousemove",function(event) {
+  
+	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+})
+*/
+
+AFRAME.registerComponent("raycasttest",{
+  init() {
+
+    
+  }
+})
 
 AFRAME.registerComponent('cross-loader', {
   async init() {
-    this.el.addEventListener("model-loaded",async ()=> {
-      console.log("cross landscape access", this.el.object3D)
+    let loader = new THREE.GLTFLoader()
+    let el = this.el
+    loader.load("../assets/processed_files/test_collision_box6_cross_placements.glb",async function(gltf) {
+
       // use the bb on the landscape to correctly scale the 0-1 values from the death data json 
-      let scene = this.el.object3D.children[0]
-      let geometry = this.el.object3D.children[0].children[0].geometry
+      let scene = gltf.scene
+      let geometry = gltf.scene.children[0].geometry
       let data = await fetch("../assets/processed_files/death_points_n33_w113.json").then(res=> res.json())
       let bb = geometry.boundingBox
       console.log(bb)
@@ -86,10 +101,12 @@ AFRAME.registerComponent('cross-loader', {
         let dst = cam.object3D.position.distanceTo(cross.position) 
         if (dst < 8000) {
           // make the crosses in the desertt
-          let intersect = raycastOnLandscape(this.el.object3D.children[0].children[0],cross.position)
+          let intersect = raycastOnLandscape(gltf.scene,cross.position)
+          if (intersect != undefined) {
           cross.position.y = intersect.point.y
           // place the cross
           addCrossToScene(cross.position)
+          }
         }
       }
     })
@@ -108,7 +125,7 @@ AFRAME.registerComponent('collider-check', {
       // make a little box at location
       makeBox(point)
       cam.object3D.position.x = point.x
-      avatar.object3D.position.y = point.y + 1.9
+      avatar.object3D.position.y = point.y +.5
       cam.object3D.position.z = point.z
       //
     });

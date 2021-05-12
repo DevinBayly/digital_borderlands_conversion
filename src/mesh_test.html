@@ -12,18 +12,18 @@
 
     <a-scene background="color:black" device-orientation-permission-ui="enabled: false">
       <a-assets>
-        <a-item id="landscape" src="../assets/processed_files/demo_mesh.glb"></a-item>
+        <a-item id="landscape" src="../assets/processed_files/test_collision_box6_visible.glb"></a-item>
         <a-item id="cross" src="../assets/processed_files/cross.glb"></a-item>
       </a-assets>
-      <a-entity  id="avatar" position="0 2 0">
+      <a-entity  id="avatar" position="0 300 0">
         <a-entity id="camera" camera look-controls wasd-controls >
         </a-entity>
       </a-entity>
       <a-entity rayCaster="objects:.clickable;" cursor="rayOrigin:mouse;" collider-check>
       </a-entity>
       <!-- environment -->
-
-      <a-entity class="clickable" gltf-model="#landscape" cross-loader></a-entity>
+      <a-entity class="clickable" gltf-model="#landscape"  ></a-entity>
+      <a-entity cross-loader visible="false">
     </a-scene>
 
   </body>
