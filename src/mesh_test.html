@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>A-Frame Cursor Teleport Component - Basic</title>
+    <title>Digital Borderlands</title>
     <meta name="description" content="Basic example for Cursor Teleport component."></meta>
     <script src="https://aframe.io/releases/1.2.0/aframe.js"></script>
     <script src="mesh_test.js"></script>
@@ -10,10 +10,14 @@
   </head>
   <body>
 
-    <a-scene background="color:black" device-orientation-permission-ui="enabled: false">
+    <a-scene background="color:#4dace4" device-orientation-permission-ui="enabled: false">
       <a-assets>
         <a-item id="landscape" src="../assets/processed_files/test_collision_box6_visible.glb"></a-item>
+        <a-item id="portal" src="../assets/processed_files/portal_flat.glb"></a-item>
         <a-item id="cross" src="../assets/processed_files/cross.glb"></a-item>
+        <a-item id="shrine" src="../assets/processed_files/shrine_emission_minus_stairs.glb"></a-item>
+        <a-item id="shrineStairs" src="../assets/processed_files/shrine_emission_teleport_stairs.glb"></a-item>
+
       </a-assets>
       <a-entity  id="avatar" position="0 300 0">
         <a-entity id="camera" camera look-controls wasd-controls="fly:true" >
@@ -22,8 +26,11 @@
       <a-entity rayCaster="objects:.clickable;" cursor="rayOrigin:mouse;" collider-check>
       </a-entity>
       <!-- environment -->
-      <a-entity class="clickable" gltf-model="#landscape"  ></a-entity>
-      <a-entity cross-loader visible="false">
+      <a-entity class="clickable" id="actual-landscape" my-gltf-model="#landscape"  ></a-entity>
+      <a-entity id="ray-landscape" cross-loader visible="false"></a-entity>
+      <a-entity class="clickable" id="portalEL" gltf-model='#portal' portal-loader></a-entity>
+      <a-entity class="clickable" id="shrineEL" gltf-model='#shrine'></a-entity>
+      <a-entity class="clickable" gltf-model='#shrineStairs' stairs-loader></a-entity>
     </a-scene>
 
   </body>
