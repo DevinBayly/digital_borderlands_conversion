@@ -105,7 +105,7 @@ function raycastPortalPlacement() {
 
 AFRAME.registerComponent('cross-loader', {
   async init() {
-    let crossDistanceMax = 800
+    let crossDistanceMax = 2000
     let loader = new THREE.GLTFLoader()
     let el = this.el
     loader.load("../assets/processed_files/test_collision_box6_cross_placements.glb",async function(gltf) {
@@ -137,8 +137,10 @@ AFRAME.registerComponent('cross-loader', {
         // if there are crosses in the active crosses then create a function promise to remove it whenever the scene isn't doing much 
         let removeExecute =(crossEntity) => {
           let crossPoint = crossEntity.object3D.position
+          let xzCross = new THREE.Vector3().copy(crossPoint)
+          xzCross.y = 0
           let camPoint = cam.object3D.position
-          if (camPoint.distanceTo(crossPoint) > crossDistanceMax) {
+          if (camPoint.distanceTo(xzCross) > crossDistanceMax) {
             crossEntity.remove()
           }
         }
@@ -167,7 +169,9 @@ AFRAME.registerComponent('cross-loader', {
             //cam.object3D.position.x = cross.position.x
             //cam.object3D.position.z = cross.position.z
           }
-          let dst = cam.object3D.position.distanceTo(cross.position) 
+          let xzCross = new THREE.Vector3().copy(cross.position)
+          xzCross.y = 0
+          let dst = cam.object3D.position.distanceTo(xzCross) 
           if (dst < crossDistanceMax && representation.indexOf(i) == -1) {
             // make the crosses in the desertt
             representation.push(i)
@@ -209,14 +213,18 @@ AFRAME.registerComponent('collider-check', {
   dependencies: ['raycaster'],
 
   init: function () {
+    let el = this.el
+    el.shift = false
+
     let avatar = document.querySelector("#avatar")
     let cam = document.querySelector("#camera")
     let landscapeEl = document.querySelector("#actual-landscape")
     let shrineEl = document.querySelector("#shrineEL")
-    this.el.addEventListener('click', function (e) {
+    this.el.addEventListener('click', (e)=>  {
       let point =  e.detail.intersection.point
       let intersectedEl = e.detail.intersectedEl
-      if (intersectedEl === landscapeEl || intersectedEl === shrineEl ) {
+      console.log("el shift is",el,el.shift)
+      if ((intersectedEl === landscapeEl || intersectedEl === shrineEl) && el.shift) {
         console.log('Player hit something!',e.detail);
 
         // make a little box at location if on landscapee
@@ -232,7 +240,21 @@ AFRAME.registerComponent('collider-check', {
       }
       //
     });
-  }
+    window.addEventListener("keydown",
+      (e)=> {
+        let el = this.el
+        if (e.key === 'Shift') {
+          el.shift = !el.shift
+        }
+      }
+    )
+    window.addEventListener("keyup",(e)=> {
+      if (e.key === 'Shift') {
+        el.shift = !el.shift
+      }
+    }
+    )
+  },
 });
 
 AFRAME.registerComponent('my-gltf-model',{
@@ -243,27 +265,30 @@ AFRAME.registerComponent('my-gltf-model',{
       // goal of doing things this way is to modify the uv's in the geometry so that we eliminate the patterns that appear over the landscape
       let geo = gltf.scene.children[0].geometry
       let inds = geo.index.array
-      let uvs = geo.attributes.uv.array
+      let uvs = geo.attributes.uv
       // go through inds getting groups of three
       for (let i = 0 ; i < inds.length;i+=3) {
         let faceInds = inds.slice(i,i+3)
         // this will be the amount we add to each of the uv thetas so they remain relative to each other except rotated
         let thetaBump = Math.random()*2*Math.PI
-        for (let fi of faceInds) {
-          // use the fi to get the u,v from the uvs
-          let u = uvs[fi]
-          let v = uvs[fi+1]
-          let mag = Math.sqrt(u*u+v*v)
-          let theta = Math.atan(v/u)
-          let newTheta =theta+ thetaBump
-          let newU = Math.cos(newTheta)*mag
-          let newV = Math.sin(newTheta)*mag
-          uvs[fi] = newU
-          uvs[fi+1] = newV
+        let sqrt3 = 1/Math.sqrt(3)
+        let a = new THREE.Vector2(0,sqrt3)
+        let b = new THREE.Vector2(1/2,-1/2*sqrt3)
+        let c = new THREE.Vector2(-1/2,-1/2*sqrt3)
+        let triangleUV = [a,b,c]
+        let randRotation = Math.random()*2*Math.PI
+        let center = new THREE.Vector2(0,0)
+        for (let [i,fi] of faceInds.entries()) {
+          let point = triangleUV[i].clone()
+          let rotated =  point.rotateAround(center,randRotation)
+          uvs.setXY(fi,rotated.x*10,rotated.y*10)
         }
+
+
       }
       // set the object as our entity
       el.setObject3D('landscape',gltf.scene)
+      //geo.attributes.uv.needsUpdate = true
 
 
     })
