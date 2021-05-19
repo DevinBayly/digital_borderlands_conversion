@@ -1,0 +1,37 @@
+<html>
+  <head>
+    
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://mixedreality.mozilla.org/ammo.js/builds/ammo.wasm.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@v4.0.1/dist/aframe-physics-system.min.js"></script>
+    <script src="./index.js"></script>
+  </head>
+  <body>
+    <a-scene shadow="enabled:false" background="color:black" device-orientation-permission-ui="enabled: false">
+      <a-assets>
+        <!--<a-item id="landscape" src="../assets/processed_files/remade_landscape_scaledup_decimated_10X_2021_4_14.glb"></a-item>-->
+        <a-item id="landscape" src="../assets/processed_files/test7.obj"></a-item>
+        <a-item id="landscape-mtl" src="../assets/processed_files/test7.mtl"></a-asset-item>
+        <a-item id="shrine" src="../assets/processed_files/shrine_2020_23_3.glb"></a-item>
+        <a-item id="boulders" src="../assets/processed_files/boulders_2020_23_3.glb"></a-item>
+        <a-item id="cross" src="../assets/processed_files/cross_2020_23_3.glb"></a-item>
+
+      </a-assets>
+</a-entity>
+<!--<a-entity gltf-model="#landscape"></a-entity>-->
+<a-entity obj-model="obj: #landscape; mtl: #landscape-mtl"></a-entity>
+<a-entity crosses=""></a-entity>
+<!--
+      <a-entity gltf-model="#shrine" loader-listener class="collidable"></a-entity>
+      <a-entity gltf-model="#cross" ></a-entity>
+      <a-entity gltf-model="#boulders" class="collidable"></a-entity>
+      -->
+    <a-entity position="0 0 0" id='rig' player="" collider-check>
+      <a-entity id='camera' look-controls wasd-controls="" camera >
+    <a-entity raycaster="showLine: true; far: 100; lineColor: red; lineOpacity: 0.5;objects: .collidable" ></a-entity>
+      </a-entity>
+    </a-entity>
+    <!--<a-sky src="../assets/processed_files/sky.png"></a-sky>-->
+    </a-scene>
+  </body>
+</html>
