@@ -49,7 +49,9 @@ function raycastOnLandscape(scene,point) {
 function addCrossToScene(point,data) {
   let scene = document.querySelector("a-scene")
   let cross = document.createElement("a-entity")
-
+  let beacon = document.createElement("a-entity")
+  // create a line into the sky starting at point
+  beacon.setAttribute("cross-beacon","")
   cross.setAttribute("scale","10 10 10")
   cross.setAttribute("gltf-model","#cross")
   cross.classList.add("clickable")
@@ -58,14 +60,20 @@ function addCrossToScene(point,data) {
     // render text 
     let text = document.createElement("a-entity")
     text.setAttribute("text","value",`${JSON.stringify(data)}`)
+    text.setAttribute("text","side","double")
     // make text above the cross"
     text.setAttribute("position","0 1 0")
     cross.append(text)
+    beacon.remove()
   })
+  beacon.object3D.position.x = point.x
+  beacon.object3D.position.y = point.y
+  beacon.object3D.position.z = point.z
   cross.object3D.position.x = point.x
   cross.object3D.position.y = point.y
   cross.object3D.position.z = point.z
   scene.append(cross)
+  scene.append(beacon)
 }
 /*
 let mouse = new THREE.Vector2()
@@ -245,6 +253,8 @@ AFRAME.registerComponent('collider-check', {
         let el = this.el
         if (e.key === 'Shift') {
           el.shift = !el.shift
+        } else if (e.key === 'Control') {
+          el.shift = false
         }
       }
     )
@@ -283,8 +293,6 @@ AFRAME.registerComponent('my-gltf-model',{
           let rotated =  point.rotateAround(center,randRotation)
           uvs.setXY(fi,rotated.x*10,rotated.y*10)
         }
-
-
       }
       // set the object as our entity
       el.setObject3D('landscape',gltf.scene)
@@ -334,5 +342,25 @@ AFRAME.registerComponent('portal-loader',{
       cam.z = shrine.z
       avatar.y = shrine.y
     })
+  }
+})
+let beaconCount = 0
+AFRAME.registerComponent('cross-beacon',{
+  init() {
+    // goal is to attach a line straight up from the cross so that users can see them and go towards them on the landscape
+    // 
+    const material = new THREE.LineBasicMaterial({
+      color:"white"
+    });
+
+    const points = [];
+    points.push( new THREE.Vector3(0,0,0 ));
+    points.push( new THREE.Vector3( 0,200,0) );
+
+    const geometry = new THREE.BufferGeometry().setFromPoints( points );
+
+    const line = new THREE.Line( geometry, material );
+    this.el.setObject3D('crossbeacon'+beaconCount,line)
+    beaconCount +=1
   }
 })
