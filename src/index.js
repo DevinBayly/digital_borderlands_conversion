@@ -1,11 +1,4 @@
-function makeBox(p) {
-  let box = document.createElement("a-box")
-  box.setAttribute("scale","1 1 1")
-  box.object3D.position.x = p.x
-  box.object3D.position.y = p.y
-  box.object3D.position.z = p.z
-  document.querySelector("a-scene").append( box )
-}
+// component definitions
 
 
 AFRAME.registerComponent("my-mesh",{
@@ -34,58 +27,18 @@ AFRAME.registerComponent("my-mesh",{
   }
 })
 
-// point will only include x,z
-// mesh will be the el.object3D, with a second argument True for recursion
-function raycastOnLandscape(scene,point) {
-  // could use the min z for the bb on the landscape also
-  let start = point
-  let dir = new THREE.Vector3(0,1,0)
-  let ray = new THREE.Raycaster(start,dir)
-  let intersects = ray.intersectObject(scene.children[0],true)
-  return intersects[0]
-}
-// use this to remove crosses that wind up beyond our distance threshold
-function addCrossToScene(point,data) {
-  let scene = document.querySelector("a-scene")
-  let cross = document.createElement("a-entity")
-  let beacon = document.createElement("a-entity")
-  // create a line into the sky starting at point
-  beacon.setAttribute("cross-beacon","")
-  cross.setAttribute("scale","10 10 10")
-  cross.setAttribute("gltf-model","#cross")
-  cross.classList.add("clickable")
-  cross.classList.add("cross")
-  cross.addEventListener("click",function(e) {
-    // render text 
-    let text = document.createElement("a-entity")
-    text.setAttribute("text","value",`${JSON.stringify(data)}`)
-    text.setAttribute("text","side","double")
-    // make text above the cross"
-    text.setAttribute("position","0 1 0")
-    cross.append(text)
-    beacon.remove()
-  })
-  beacon.object3D.position.x = point.x
-  beacon.object3D.position.y = point.y
-  beacon.object3D.position.z = point.z
-  cross.object3D.position.x = point.x
-  cross.object3D.position.y = point.y
-  cross.object3D.position.z = point.z
-  scene.append(cross)
-  scene.append(beacon)
-}
 
 AFRAME.registerComponent('cross-loader', {
   async init() {
     let crossDistanceMax = 2000
     let loader = new THREE.GLTFLoader()
     let el = this.el
-    loader.load("../assets/processed_files/test_collision_box6_cross_placements.glb",async function(gltf) {
+    loader.load("../assets/processed_files/cross_placement_landscape_nonvisible.glb",async function(gltf) {
 
       // use the bb on the landscape to correctly scale the 0-1 values from the death data json 
       let scene = gltf.scene
       // set object for other systems to load off of
-      console.log("starting crossese")
+      console.log("starting crosses")
       el.setObject3D('rayland',gltf.scene)
       let geometry = gltf.scene.children[0].geometry
       let data = await fetch("../assets/processed_files/death_points_n33_w113.json").then(res=> res.json())
@@ -96,8 +49,7 @@ AFRAME.registerComponent('cross-loader', {
       for (let datum of data) {
         let nlat = datum['norm_lat']
         let nlng = datum['norm_lng']
-        // shoot which one is for x vs z? I think long is x
-        //console.log(nlat,nlng,nlng*(bb.max.x - bb.min.x) +bb.min.x,nlat*(bb.max.z - bb.min.z) +bb.min.z)
+        // long is x lat is z
         let singleConverted = {
           position: new THREE.Vector3(nlng*(bb.max.x - bb.min.x) +bb.min.x, bb.min.y - 10,nlat*(bb.max.z - bb.min.z) +bb.min.z),
           displayData:datum
@@ -136,16 +88,11 @@ AFRAME.registerComponent('cross-loader', {
         let sequentialLoads = []
         let crossExecute = (i)=> {
           let cross = crossesInMeshSpace[i]
-          if (i == 0) { 
-            // move to the first cross
-            //cam.object3D.position.x = cross.position.x
-            //cam.object3D.position.z = cross.position.z
-          }
           let xzCross = new THREE.Vector3().copy(cross.position)
           xzCross.y = 0
           let dst = cam.object3D.position.distanceTo(xzCross) 
           if (dst < crossDistanceMax && representation.indexOf(i) == -1) {
-            // make the crosses in the desertt
+            // make the crosses in the desert
             representation.push(i)
             let intersect = raycastOnLandscape(gltf.scene,cross.position)
             if (intersect != undefined) {
@@ -167,10 +114,9 @@ AFRAME.registerComponent('cross-loader', {
         sequentialLoads.map(
           e=> e.then(i=> crossExecute(i))
         )
-        // do the portal raycast placement
       }
       let update =()=> {
-        console.log("cycling crossess")
+        console.log("cycling crosses")
         removeCrosses()
         placeCrosses()
         setTimeout(update,4000)
@@ -234,7 +180,7 @@ AFRAME.registerComponent('my-gltf-model',{
   init() { 
     let el = this.el
     let loader = new THREE.GLTFLoader()
-    loader.load('../assets/processed_files/test_collision_box6_visible.glb',function (gltf) {
+    loader.load('../assets/processed_files/visible_landscape_model.glb',function (gltf) {
       // goal of doing things this way is to modify the uv's in the geometry so that we eliminate the patterns that appear over the landscape
       let geo = gltf.scene.children[0].geometry
       let inds = geo.index.array
@@ -327,3 +273,53 @@ AFRAME.registerComponent('cross-beacon',{
     beaconCount +=1
   }
 })
+// helper functions 
+function makeBox(p) {
+  let box = document.createElement("a-box")
+  box.setAttribute("scale","1 1 1")
+  box.object3D.position.x = p.x
+  box.object3D.position.y = p.y
+  box.object3D.position.z = p.z
+  document.querySelector("a-scene").append( box )
+}
+
+// point will only include x,z
+// mesh will be the el.object3D, with a second argument True for recursion
+function raycastOnLandscape(scene,point) {
+  // could use the min z for the bb on the landscape also
+  let start = point
+  let dir = new THREE.Vector3(0,1,0)
+  let ray = new THREE.Raycaster(start,dir)
+  let intersects = ray.intersectObject(scene.children[0],true)
+  return intersects[0]
+}
+
+function addCrossToScene(point,data) {
+  let scene = document.querySelector("a-scene")
+  let cross = document.createElement("a-entity")
+  let beacon = document.createElement("a-entity")
+  // create a line into the sky starting at point
+  beacon.setAttribute("cross-beacon","")
+  cross.setAttribute("scale","10 10 10")
+  cross.setAttribute("gltf-model","#cross")
+  cross.classList.add("clickable")
+  cross.classList.add("cross")
+  cross.addEventListener("click",function(e) {
+    // render text 
+    let text = document.createElement("a-entity")
+    text.setAttribute("text","value",`${JSON.stringify(data)}`)
+    text.setAttribute("text","side","double")
+    // make text above the cross"
+    text.setAttribute("position","0 1 0")
+    cross.append(text)
+    beacon.remove()
+  })
+  beacon.object3D.position.x = point.x
+  beacon.object3D.position.y = point.y
+  beacon.object3D.position.z = point.z
+  cross.object3D.position.x = point.x
+  cross.object3D.position.y = point.y
+  cross.object3D.position.z = point.z
+  scene.append(cross)
+  scene.append(beacon)
+}
