@@ -13,6 +13,9 @@ Project links:
 
 For many people creating content that can become VR experiences there's often a big question about what framework to use. People who are creating AAA game experiences are drawn to tools like Unity and Unreal, but these don't always serve the priorities of projects that are currently at a smaller scale. For the Migrant Forensic Empathy project it made sense to go with a lighter weight framework that emphasized more rapid development at the expense of certian built in features that go with these game engines. 
 
+# Useful background
+
+The github repo for this project has a dev and a main branch, but these are currently at the state of development. Main just helps to indicate that this is a version that is meant for viewing rather than development.
 
 # Technical Description Section
 ## Landscape Model 
@@ -129,6 +132,14 @@ Any time that changes are made to the files inside the `src/` directory, the web
 
 For more responsive reloading options check into options such as `npm reload.js` https://www.npmjs.com/package/reload. 
 
+# Making changes in a Permanent way
+
+All of the changes within the development environment will be reflected on the local system, but changing the public website is another story. First it's important to understand what the public website is. Github repositories all come with a free "github page" which is a website that can be reached by following the pattern `githubname.github.io/reponame/optional_path`. For instance, the website as of now is https://devinbayly.github.io/digital_borderlands_conversion/src/mesh_test.html. Whoever in the future wants to have their changes made permanent will need to `fork` the repository at github.com/DevinBayly/digital_borderlands_conversion
+
+![](https://i.imgur.com/xJMFj5s.png)
+
+The steps that follow are covered in the github documentation on creating a github page for a repository https://docs.github.com/en/pages. 
+
 # Aframe Details
 ## What is Aframe
 
@@ -205,7 +216,7 @@ Shown below is an example using real paths and filenames from the project.
 </a-scene>
 ```
 
-The source code contains other examples of using these imports https://github.com/DevinBayly/digital_borderlands_conversion/blob/dev/src/mesh_test.html specifically https://github.com/DevinBayly/digital_borderlands_conversion/blob/872593d5d30dd5ffe4d52ea46774bef9e5eaba1a/src/mesh_test.html#L15. 
+The source code contains other examples of using these imports https://github.com/DevinBayly/digital_borderlands_conversion/blob/main/src/index.html specifically https://github.com/DevinBayly/digital_borderlands_conversion/blob/872593d5d30dd5ffe4d52ea46774bef9e5eaba1a/src/mesh_test.html#L15. 
 
 ## Landscape Constrained Movement 
 
@@ -362,7 +373,7 @@ Another major place that time went was in the creation of the landscape mesh. Be
  
 ### putting in the oral histories
  
- - Description: This task is meant to increase the variety of asset present in the shrine by include a 2d plane connected to a youtube video of recorded oral histories of migrants crossing the border. The Aframe example that is closest to this is https://aframe.io/aframe/examples/test/video/.
+ - Description: This task is meant to increase the variety of asset present in the shrine by include a 2d plane connected to a youtube video of recorded oral histories of migrants crossing the border. The Aframe example that is closest to this is https://aframe.io/aframe/examples/test/video/. There is currently a demo of putting a video element in but there weren't any oral history mp4's to use so these will have to be substituted in.
  - Suggested Skills: intermediate Javascript and Aframe 
  
 ### Templating out the messages that appear above the cross
