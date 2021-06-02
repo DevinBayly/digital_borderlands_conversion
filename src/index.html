@@ -17,20 +17,24 @@
         <a-item id="shrine" src="../assets/processed_files/shrine_emission_minus_stairs.glb"></a-item>
         <a-item id="shrinetable" src="../assets/processed_files/shrine_table.glb"></a-item>
         <a-item id="shrineStairs" src="../assets/processed_files/shrine_emission_teleport_stairs.glb"></a-item>
+        <!-- this is a demonstratin of a video that would play, but I don't currentnly have any oral history mp4s-->
+        <video id="videoBunny" preload="auto" src="../assets/processed_files/bunny.mp4" autoplay="" loop="true" crossorigin="anonymous" muted="" playsinline="" webkit-playsinline="" width="160" height="90"></video>
 
       </a-assets>
       <a-entity  id="avatar" position="0 150 0">
         <a-entity id="camera" camera look-controls >
         </a-entity>
       </a-entity>
-      <a-entity rayCaster="objects:.clickable;far:20" cursor="rayOrigin:mouse;" collider-check>
+        <a-entity id="oralHistory"  material="shader: flat; src: #videoBunny;side:double" geometry="primitive: plane; width: 16; height: 9;" position="0 150 0"></a-entity>
+      <a-entity rayCaster="objects:.clickable;" cursor="rayOrigin:mouse;" collider-check>
       </a-entity>
       <!-- environment -->
       <a-entity class="clickable" id="actual-landscape" my-gltf-model></a-entity>
       <a-entity id="ray-landscape" cross-loader visible="false"></a-entity>
       <a-entity class="clickable" id="portalEL" gltf-model='#portal' portal-loader></a-entity>
       <a-entity class="clickable" id="shrineEL" gltf-model='#shrine'></a-entity>
-      <a-entity  id="table" gltf-model='#shrinetable'></a-entity>
+      <a-entity  id="table" gltf-model='#shrinetable'>
+      </a-entity>
       <a-entity class="clickable" gltf-model='#shrineStairs' stairs-loader></a-entity>
     </a-scene>
 
