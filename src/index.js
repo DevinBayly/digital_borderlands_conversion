@@ -1,127 +1,329 @@
-AFRAME.registerComponent('player',{
+function makeBox(p) {
+  let box = document.createElement("a-box")
+  box.setAttribute("scale","1 1 1")
+  box.object3D.position.x = p.x
+  box.object3D.position.y = p.y
+  box.object3D.position.z = p.z
+  document.querySelector("a-scene").append( box )
+}
+
+
+AFRAME.registerComponent("my-mesh",{
   init() {
-    console.log("creating player")
+    console.log("self is ",self)
     let el = this.el
-    let scene = el.sceneEl
-    window.addEventListener("keydown",(e)=> {
-      let sign = 1
-      if (e.shiftKey) {
-        sign=-1
+    let loader = new THREE.GLTFLoader()
+    loader.load("../assets/processed_files/intersectable_landscape_model.glb",function(gltf) {
+      console.log(gltf)
+      el.setObject3D("landscape",gltf.scene)
+      let cam = document.querySelector("#camera")
+      let repeatPlace = ()=> {
+        // create raycaster from 
+        let start = new THREE.Vector3(cam.object3D.position.x,-100,cam.object3D.position.z)
+        let end = new THREE.Vector3(0,1,0)
+        let ray = new THREE.Raycaster(start,end)
+        // calculate intersections
+        // // set recursive children check
+        let intersects = ray.intersectObject(gltf.scene.children[0],true)
+        console.log(intersects)
+        makeBox(intersects[0].point)
+        setTimeout(repeatPlace,4000)
       }
-      if (e.code.match(/space/i)) {
-        el.object3D.position.y += .1*sign
-      }
-    })
-    let ele = this.el
-    window.addEventListener("shrine-placed",(e)=> {
-      let shrine_pos =  e.detail.srcElement.object3D.children[0].children[0].position
-      ele.object3D.position.x = shrine_pos.x
-      ele.object3D.position.y = shrine_pos.y+.5
-      ele.object3D.position.z = shrine_pos.z
-      console.log(ele.object3D.position,"position now")
+      repeatPlace()
     })
   }
 })
 
-// raycasting collisin check, add this to something and it will alert when the raycaster hits something
-//
+// point will only include x,z
+// mesh will be the el.object3D, with a second argument True for recursion
+function raycastOnLandscape(scene,point) {
+  // could use the min z for the bb on the landscape also
+  let start = point
+  let dir = new THREE.Vector3(0,1,0)
+  let ray = new THREE.Raycaster(start,dir)
+  let intersects = ray.intersectObject(scene.children[0],true)
+  return intersects[0]
+}
+// use this to remove crosses that wind up beyond our distance threshold
+function addCrossToScene(point,data) {
+  let scene = document.querySelector("a-scene")
+  let cross = document.createElement("a-entity")
+  let beacon = document.createElement("a-entity")
+  // create a line into the sky starting at point
+  beacon.setAttribute("cross-beacon","")
+  cross.setAttribute("scale","10 10 10")
+  cross.setAttribute("gltf-model","#cross")
+  cross.classList.add("clickable")
+  cross.classList.add("cross")
+  cross.addEventListener("click",function(e) {
+    // render text 
+    let text = document.createElement("a-entity")
+    text.setAttribute("text","value",`${JSON.stringify(data)}`)
+    text.setAttribute("text","side","double")
+    // make text above the cross"
+    text.setAttribute("position","0 1 0")
+    cross.append(text)
+    beacon.remove()
+  })
+  beacon.object3D.position.x = point.x
+  beacon.object3D.position.y = point.y
+  beacon.object3D.position.z = point.z
+  cross.object3D.position.x = point.x
+  cross.object3D.position.y = point.y
+  cross.object3D.position.z = point.z
+  scene.append(cross)
+  scene.append(beacon)
+}
+
+AFRAME.registerComponent('cross-loader', {
+  async init() {
+    let crossDistanceMax = 2000
+    let loader = new THREE.GLTFLoader()
+    let el = this.el
+    loader.load("../assets/processed_files/test_collision_box6_cross_placements.glb",async function(gltf) {
+
+      // use the bb on the landscape to correctly scale the 0-1 values from the death data json 
+      let scene = gltf.scene
+      // set object for other systems to load off of
+      console.log("starting crossese")
+      el.setObject3D('rayland',gltf.scene)
+      let geometry = gltf.scene.children[0].geometry
+      let data = await fetch("../assets/processed_files/death_points_n33_w113.json").then(res=> res.json())
+      let bb = geometry.boundingBox
+      console.log(bb)
+      let crossesInMeshSpace =[]
+      let representation =[]
+      for (let datum of data) {
+        let nlat = datum['norm_lat']
+        let nlng = datum['norm_lng']
+        // shoot which one is for x vs z? I think long is x
+        //console.log(nlat,nlng,nlng*(bb.max.x - bb.min.x) +bb.min.x,nlat*(bb.max.z - bb.min.z) +bb.min.z)
+        let singleConverted = {
+          position: new THREE.Vector3(nlng*(bb.max.x - bb.min.x) +bb.min.x, bb.min.y - 10,nlat*(bb.max.z - bb.min.z) +bb.min.z),
+          displayData:datum
+        }
+        crossesInMeshSpace.push(singleConverted)
+      }
+      let removeCrosses =()=> {
+        let cam = document.querySelector("#camera")
+        // if there are crosses in the active crosses then create a function promise to remove it whenever the scene isn't doing much 
+        let removeExecute =(crossEntity) => {
+          let crossPoint = crossEntity.object3D.position
+          let xzCross = new THREE.Vector3().copy(crossPoint)
+          xzCross.y = 0
+          let camPoint = cam.object3D.position
+          if (camPoint.distanceTo(xzCross) > crossDistanceMax) {
+            crossEntity.remove()
+          }
+        }
+        let stage =(el,i)=>{
+          return new Promise(resolve=> {
+            setTimeout(()=> resolve(el),100*i)
+          })
+        }
+        //
+        let promiseList = []
+        let i = 0
+        for (let crossEntity of document.querySelectorAll(".cross") ) {
+          promiseList.push(stage(crossEntity,i))
+          i+=1
+        }
+        promiseList.map(prom=> prom.then(removeExecute))
+
+      }
+      let placeCrosses = ()=> {
+        let cam = document.querySelector("#camera")
+        let sequentialLoads = []
+        let crossExecute = (i)=> {
+          let cross = crossesInMeshSpace[i]
+          if (i == 0) { 
+            // move to the first cross
+            //cam.object3D.position.x = cross.position.x
+            //cam.object3D.position.z = cross.position.z
+          }
+          let xzCross = new THREE.Vector3().copy(cross.position)
+          xzCross.y = 0
+          let dst = cam.object3D.position.distanceTo(xzCross) 
+          if (dst < crossDistanceMax && representation.indexOf(i) == -1) {
+            // make the crosses in the desertt
+            representation.push(i)
+            let intersect = raycastOnLandscape(gltf.scene,cross.position)
+            if (intersect != undefined) {
+              cross.position.y = intersect.point.y
+              // place the cross
+              addCrossToScene(cross.position,cross.displayData)
+            }
+          }
+        }
+        let stage = (i)=> {
+          return new Promise(resolve=> {
+            setTimeout(()=> resolve(i),i*50)
+          })
+        }
+        for (let i = 0 ; i < crossesInMeshSpace.length; i+=1) {
+          // space out the creation of the crosses so the scene doesn't lag
+          sequentialLoads.push(stage(i))
+        }
+        sequentialLoads.map(
+          e=> e.then(i=> crossExecute(i))
+        )
+        // do the portal raycast placement
+      }
+      let update =()=> {
+        console.log("cycling crossess")
+        removeCrosses()
+        placeCrosses()
+        setTimeout(update,4000)
+      }
+      update()
+    })
+  }
+})
+
 AFRAME.registerComponent('collider-check', {
-  dependencies:['raycaster'],
-  init: function () {
-    this.el.addEventListener('raycaster-intersection',function(e) {
-      console.log('player hit something',e)
-    })
-  }
-})
+  dependencies: ['raycaster'],
 
-// this function will make it so that our camera rig gets an event to place at the right location
-AFRAME.registerComponent("loader-listener",{
   init: function () {
-    this.el.addEventListener('model-loaded',function(e){ 
-      console.log("loaded model",e)
-      let event = new CustomEvent('shrine-placed',{detail:e})
-      window.dispatchEvent(event)
-    })
-  }
-})
+    let el = this.el
+    el.shift = false
 
-AFRAME.registerComponent("crosses",{
-  init:function() {
-    // load the elementsjson, then append a box for each 
-    let sEl = this.el.sceneEl
-    fetch("../assets/processed_files/elements.json").then(res=> res.json()).then(j=> {
-      for(let cross of j){
-        //let b = document.createElement("a-gltf-model")
-        let b = document.createElement("a-box")
-        //b.setAttribute("src","../assets/processed_files/cross.glb")
-      b.setAttribute("position",`${cross.pt.x} ${cross.pt.y} ${cross.pt.z}`)
-      b.setAttribute("color","red")
-      b.setAttribute("scale",".1 .1 .1")
-      sEl.append(b)
+    let avatar = document.querySelector("#avatar")
+    let cam = document.querySelector("#camera")
+    let landscapeEl = document.querySelector("#actual-landscape")
+    let shrineEl = document.querySelector("#shrineEL")
+    this.el.addEventListener('click', (e)=>  {
+      let point =  e.detail.intersection.point
+      let intersectedEl = e.detail.intersectedEl
+      console.log("el shift is",el,el.shift)
+      if ((intersectedEl === landscapeEl || intersectedEl === shrineEl) && el.shift) {
+        console.log('Player hit something!',e.detail);
+
+        // make a little box at location if on landscapee
+        if (intersectedEl === landscapeEl ) {
+          makeBox(point)
+          avatar.object3D.position.y = point.y + 2
+        } else {
+          // change height adjust for indoor
+          avatar.object3D.position.y = point.y +.05
+        }
+        cam.object3D.position.x = point.x
+        cam.object3D.position.z = point.z
       }
-      
+      //
+    });
+    window.addEventListener("keydown",
+      (e)=> {
+        let el = this.el
+        if (e.key === 'Shift') {
+          el.shift = !el.shift
+        } else if (e.key === 'Control') {
+          el.shift = false
+        }
+      }
+    )
+    window.addEventListener("keyup",(e)=> {
+      if (e.key === 'Shift') {
+        el.shift = !el.shift
+      }
+    }
+    )
+  },
+});
+
+AFRAME.registerComponent('my-gltf-model',{
+  init() { 
+    let el = this.el
+    let loader = new THREE.GLTFLoader()
+    loader.load('../assets/processed_files/test_collision_box6_visible.glb',function (gltf) {
+      // goal of doing things this way is to modify the uv's in the geometry so that we eliminate the patterns that appear over the landscape
+      let geo = gltf.scene.children[0].geometry
+      let inds = geo.index.array
+      let uvs = geo.attributes.uv
+      // go through inds getting groups of three
+      for (let i = 0 ; i < inds.length;i+=3) {
+        let faceInds = inds.slice(i,i+3)
+        // this will be the amount we add to each of the uv thetas so they remain relative to each other except rotated
+        let thetaBump = Math.random()*2*Math.PI
+        let sqrt3 = 1/Math.sqrt(3)
+        let a = new THREE.Vector2(0,sqrt3)
+        let b = new THREE.Vector2(1/2,-1/2*sqrt3)
+        let c = new THREE.Vector2(-1/2,-1/2*sqrt3)
+        let triangleUV = [a,b,c]
+        let randRotation = Math.random()*2*Math.PI
+        let center = new THREE.Vector2(0,0)
+        for (let [i,fi] of faceInds.entries()) {
+          let point = triangleUV[i].clone()
+          let rotated =  point.rotateAround(center,randRotation)
+          uvs.setXY(fi,rotated.x*10,rotated.y*10)
+        }
+      }
+      // set the object as our entity
+      el.setObject3D('landscape',gltf.scene)
+      //geo.attributes.uv.needsUpdate = true
+
+
     })
+
   }
 })
 
-let pt = function(x,y,z) {
-  this.x = x
-  this.y = y
-  this.z = z
-}
-pt.prototype.distXZ = function (o) {
-  return Math.sqrt(Math.pow(o.x - this.x,2) + Math.pow(o.z - this.z,2))
-}
+// Component to change to a sequential color on click.
+AFRAME.registerComponent('cursor-listener', {
+  init: function () {
+    this.el.addEventListener('click', function (evt) {
+      console.log('I was clicked at: ',point);
+    });
+  }
+});
 
-AFRAME.registerComponent('nav-mesh',{
+AFRAME.registerComponent('stairs-loader',{
+  init () {
+    // 
+    this.el.addEventListener('click',function(e) {
+      // transport to the portal
+      console.log("clicked stairs",e)
+      let portal = document.querySelector("#portalEL").object3D.children[0].children[0].position
+      let cam = document.querySelector("#camera").object3D.position
+      let avatar = document.querySelector("#avatar").object3D.position
+      cam.x = portal.x-2
+      cam.z = portal.z + 1
+      avatar.y = portal.y+2
+    })
+  }
+})
+AFRAME.registerComponent('portal-loader',{
+  init () {
+    // 
+    this.el.addEventListener('click',function(e) {
+      // transport to the shrine
+      console.log("clicked portal",e)
+      let shrine = document.querySelector("#shrineEL").object3D.children[0].children[0].position
+      let cam = document.querySelector("#camera").object3D.position
+      let avatar = document.querySelector("#avatar").object3D.position
+      cam.x = shrine.x
+      cam.y = 0
+      cam.z = shrine.z
+      avatar.y = shrine.y
+    })
+  }
+})
+let beaconCount = 0
+AFRAME.registerComponent('cross-beacon',{
   init() {
-    let navEl = this.el
-    let nav = this
-    this.el.addEventListener("model-loaded",function (e) {
-      console.log("loaded",e)
-      let mesh = e.detail.model.children[0].geometry
-      let positions = mesh.attributes.position.array
-      // go through and create points from everything
-      console.log(positions)
-      let points = []
-      for (let i = 0; i < positions.length; i+=3) {
-        let p = new pt(positions[i],positions[i+1],positions[i+2])
+    // goal is to attach a line straight up from the cross so that users can see them and go towards them on the landscape
+    // 
+    const material = new THREE.LineBasicMaterial({
+      color:"white"
+    });
 
-        points.push(p)
-      }
-      console.log(points)
-      let pairedDown = points.reduce((acc,cur)=> {
-        if (acc.indexOf(JSON.stringify(cur)) == -1) {
-          acc.push(JSON.stringify(cur))
-        }
-        return acc
-      },[])
-      pairedDown = pairedDown.map(e=> {
-        let xyz = JSON.parse(e)
-        return new pt(xyz.x,xyz.y,xyz.z)
-      })
-      console.log(pairedDown)
-      nav.Points = pairedDown
-      // calculate position for starting point
-      // query the 
-      let updateHeight =() => {
-      let avatar = document.querySelector("#avatar").object3D
-      console.log(avatar)
-      let avatarPoint = new pt(avatar.position.x,0,avatar.position.z)
-      let min
-      for (let meshPoint of nav.Points) {
-        // calculate the minimum distance
-        let dst = meshPoint.distXZ(avatarPoint)
-        if (min == undefined || min.v > dst) {
-          min = {v:dst,y:meshPoint.y}
-        }
-      }
-      avatar.position.y = min.y
-      setTimeout(()=> {
-        updateHeight()
-      },5000)
-      }
-      updateHeight()
-    })
+    const points = [];
+    points.push( new THREE.Vector3(0,0,0 ));
+    points.push( new THREE.Vector3( 0,200,0) );
+
+    const geometry = new THREE.BufferGeometry().setFromPoints( points );
+
+    const line = new THREE.Line( geometry, material );
+    this.el.setObject3D('crossbeacon'+beaconCount,line)
+    beaconCount +=1
   }
 })
